@@ -1,0 +1,9 @@
+<!doctype html><meta charset="utf-8"><title>relay</title><body>
+<script>
+// Sends the video to the window that opened this page (Instagram / Threads tab), then closes.
+const ok=["https://www.instagram.com","https://www.threads.com","https://www.threads.net"];
+fetch("tart-cafe.mp4").then(r=>r.blob()).then(b=>{
+  for(const o of ok){ try{ window.opener && window.opener.postMessage({kind:"xxh-video",blob:b},o);}catch(e){} }
+  document.body.textContent="sent "+b.size;
+});
+</script>
