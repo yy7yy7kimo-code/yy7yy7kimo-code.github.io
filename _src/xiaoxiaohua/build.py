@@ -58,7 +58,9 @@ FAQ = [
   ("要去哪裡買？", "請到蝦皮賣場「小小花手工烘焙」下單，我們從台中手工現烤後寄出，下單後 3 天內出貨。"),
   ("下單後多久出貨？", "每天手工現烤、每日限量，蝦皮下單後 3 天內出貨。需要指定日期，請在訂單備註寫明。"),
   ("可以大量訂購嗎？公司贈禮、團購怎麼訂？", "可以。請在蝦皮聊聊告訴我們品項、數量和希望收到的日期，確認產能後會回覆可以出貨的時間。"),
-  ("蔥軋餅可以放多久？", "蔥軋餅保存期限 15 天。其他商品請以包裝標示為準，收到後放陰涼乾燥處並盡早享用。"),
+  ("蔥軋餅可以放多久？", "所有商品都是常溫保存。蔥軋餅保存期限 15 天，其他商品請以包裝標示為準，收到後放陰涼乾燥處並盡早享用。"),
+  ("運費怎麼算？", "運費依蝦皮結帳時選的物流方式計算，例如萊爾富取貨 NT$50、7-ELEVEN 取貨 NT$60，宅配依重量計價，實際金額以蝦皮結帳畫面為準。"),
+  ("收到不滿意可以退貨嗎？", "可以。收到商品覺得不滿意，只要在保存期限內把商品寄回，我們直接退款。"),
   ("禮盒需要另外包裝嗎？", "不用。夏威夷豆塔有粉色提盒和禮盒，蔥軋餅 40 片附禮盒和提袋，收到就能直接送人。"),
   ("台中有什麼適合送禮的伴手禮？", "如果要送長輩或拜訪親友，夏威夷豆塔提盒最體面；送同事、辦公室分享，單片密封的蔥軋餅最方便。兩種都是小小花在台中每天手工現烤。"),
 ]
@@ -209,11 +211,22 @@ BRAND_LD = {
   "sameAs": [u for _, u in SOCIAL],
   "knowsAbout": ["夏威夷豆塔", "蔥軋餅", "牛軋餅", "杏仁船餅", "台中伴手禮", "手工餅乾"]}
 
+# 運費：蝦皮後台物流設定顯示的超商取貨運費（2026-11-13）；宅配依重量另計，不列入。
+SHIPPING = [{"@type": "OfferShippingDetails", "shippingLabel": label,
+             "shippingRate": {"@type": "MonetaryAmount", "value": str(fee), "currency": "TWD"},
+             "shippingDestination": {"@type": "DefinedRegion", "addressCountry": "TW"}}
+            for label, fee in [("萊爾富取貨", 50), ("7-ELEVEN 取貨", 60)]]
+# 退貨：店家說明「不滿意在保存期限內寄回直接退款」；保存期限 15 天，以 15 天為退貨期間上限。
+RETURNS = {"@type": "MerchantReturnPolicy", "applicableCountry": "TW",
+           "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+           "merchantReturnDays": 15, "returnMethod": "https://schema.org/ReturnByMail"}
+
 def product_ld(p):
     prices = [o[1] for o in p["options"]]
     offer = ({"@type": "Offer", "price": str(prices[0])} if len(prices) == 1 else
              {"@type": "AggregateOffer", "lowPrice": str(min(prices)), "highPrice": str(max(prices)), "offerCount": len(prices)})
-    offer.update({"priceCurrency": "TWD", "availability": "https://schema.org/InStock", "url": p["options"][0][2]})
+    offer.update({"priceCurrency": "TWD", "availability": "https://schema.org/InStock", "url": p["options"][0][2],
+                  "shippingDetails": SHIPPING, "hasMerchantReturnPolicy": RETURNS})
     return {"@type": "Product", "name": p["name"], "description": p["intro"],
             "image": [f"{SITE}/images/{p['img']}"] + [f"{SITE}/images/{g}" for g in p["gallery"]],
             "brand": {"@type": "Brand", "name": "小小花手工烘焙坊"}, "offers": offer,
